@@ -1,6 +1,9 @@
 #include <xc.h>
 #define _XTAL_FREQ 4000000
 #define APTOS 2
+#define TMR2PRESCALE 4
+#define PWM_freq 5000
+
 //ponteiro para a tarefa
 typedef void tarefa();
 
@@ -27,12 +30,28 @@ void task_2();
 
 // tratar interrupções
 void __interrupt() interrupt_for_timer0();
+void PWM_Initialize(){
+  PR2 = (_XTAL_FREQ/(PWM_freq*4*TMR2PRESCALE)) - 1; //Setting the PR2 formulae using Datasheet // Makes the PWM work in 5KHZ
+  CCP1M3 = 1; 
+  CCP1M2 = 1;  //Configure the CCP1 module 
+  T2CKPS0 = 1;
+  T2CKPS1 = 0; 
+  TMR2ON = 1; //Configure the Timer module
+  TRISC2 = 0; // make port pin on C as output
+}
+
+void Periodo_PWM(unsigned char Valor){ // 0b1001010
+   T2CON = 0x04;         // Timer2 desligado, Prescaler = 1 (p. 137 do datasheet)
+   PR2 = Valor;          // Registrador que contém o período do Timer2 (p. 137 do datasheet)
+}
 
 void main(void) {
     //Config do input
     TRISAbits.RA0 = 1;
+    TRISCbits.RC2 = 0;
     TRISDbits.RD0 = 0;
     TRISDbits.RD1 = 0;
+    PWM_Initialize();
     
     // config analogico to digital
     ADCON0bits.ADON = 1;
@@ -91,8 +110,9 @@ void task_2(){
     PORTDbits.RD1 = 0;
     
     // tensao de saida do potenciometro 
-    PORTDbits.RD0 = input_value; // 00010010101101010
-    if(input_value !=0 ){
+    Periodo_PWM((unsigned char)input_value);
+    
+    if(input_value > 32000 ){
         PORTDbits.RD1 = 1;
     }
     
