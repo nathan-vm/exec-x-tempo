@@ -13,8 +13,8 @@ typedef struct TCB {
     state_t task_state;
 } tcb_t;
 
-tcb_t STACK[];
-int control_aptos = 0;
+tcb_t STACK[APTOS];
+unsigned int control_aptos = 0;
 int task_on_turn = 0;
 
 void create_task(tarefa *func);
@@ -24,17 +24,27 @@ void agent();
 void task_1();
 void task_2();
 
+// tratar interrupções
+void __interrupt() interrupt_for_timer0();
+
 void main(void) {
+    //Config do timer
+    T0CONbits_t.TMR0ON = 1;
+    T0CONbits_t.T08BIT = 0;
+    T0CONbits_t.T0CS = 0; // clock interno
+    T0CONbits_t.PSA = 1;
+    INTCONbits_t.TMR0IE = 1;
+    INTCONbits_t.TMR0IF = 0;
+    INTCONbits_t.PEIE = 1;
+    INTCONbits_t.GIE = 1;
+    TMR0L = 0;
     
     create_task(task_1());
     create_task(task_2());
     
     while (1) { 
-      agent();
-      __delay_ms(10);
+       
    }
-    
-    
     return;
 }
 
@@ -62,4 +72,12 @@ void task_1(){
 void task_2(){
     // tensao de saida do potenciometro 
     return;
+}
+
+void interrupt_for_timer0(){
+    if(INTCONbits_t.TMR0IF) {
+       agent()
+       INTCONbits_t.TMR0IF = 0;
+       TMR0L = 0;
+    }
 }
