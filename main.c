@@ -8,13 +8,13 @@ typedef void tarefa();
 typedef enum {READY=0,RUNNING,WAITING} state_t;
 
 typedef struct TCB {
-    unsigned int task_ID;
+    int task_ID;
     tarefa *task_func;
     state_t task_state;
 } tcb_t;
 
 tcb_t STACK[APTOS];
-unsigned int control_aptos = 0;
+int control_aptos = 0;
 int task_on_turn = 0;
 
 void create_task(tarefa *func);
@@ -29,18 +29,18 @@ void __interrupt() interrupt_for_timer0();
 
 void main(void) {
     //Config do timer
-    T0CONbits_t.TMR0ON = 1;
-    T0CONbits_t.T08BIT = 0;
-    T0CONbits_t.T0CS = 0; // clock interno
-    T0CONbits_t.PSA = 1;
-    INTCONbits_t.TMR0IE = 1;
-    INTCONbits_t.TMR0IF = 0;
-    INTCONbits_t.PEIE = 1;
-    INTCONbits_t.GIE = 1;
+    T0CONbits.TMR0ON = 1;
+    T0CONbits.T08BIT = 0;
+    T0CONbits.T0CS = 0; // clock interno
+    T0CONbits.PSA = 1;
+    INTCONbits.TMR0IE = 1;
+    INTCONbits.TMR0IF = 0;
+    INTCONbits.PEIE = 1;
+    INTCONbits.GIE = 1;
     TMR0L = 0;
     
-    create_task(task_1());
-    create_task(task_2());
+    create_task(task_1);
+    create_task(task_2);
     
     while (1) { 
        
@@ -75,9 +75,9 @@ void task_2(){
 }
 
 void interrupt_for_timer0(){
-    if(INTCONbits_t.TMR0IF) {
-       agent()
-       INTCONbits_t.TMR0IF = 0;
+    if(INTCONbits.TMR0IF) {
+       agent();
+       INTCONbits.TMR0IF = 0;
        TMR0L = 0;
     }
 }
