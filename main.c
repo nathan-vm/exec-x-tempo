@@ -36,6 +36,8 @@ void main(void) {
     
     // config analogico to digital
     ADCON0bits.ADON = 1;
+    ADCON0 = 0b00000001 ; 
+//    ADCON0bits.CHS0 = 1;
     
     //Config do timer
     T0CONbits.TMR0ON = 1;
@@ -75,14 +77,13 @@ void create_task(tarefa *func){
 }
 
 void task_1(){
+    // PORTDbits.RD1 = 1;
+//    PORTDbits.RD1 = 1;
     // ler o potenciometro 
     ADCON0bits.GO = 1;
     
-    while(ADCON0bits.GO_DONE){
-        input_value = ADRESH;
-    }
-    
-    PORTDbits.RD1 = 1;
+    while(ADCON0bits.GO_DONE);
+    input_value = ADRESL + (ADRESH *256);
     
     return;
 }
@@ -90,10 +91,12 @@ void task_2(){
     PORTDbits.RD1 = 0;
     
     // tensao de saida do potenciometro 
-        if(input_value != 0){
-            PORTDbits.RD0 = input_value; // 00010010101101010
-        }
+    PORTDbits.RD0 = input_value; // 00010010101101010
+    if(input_value !=0 ){
+        PORTDbits.RD1 = 1;
+    }
     
+
     return;
 }
 
