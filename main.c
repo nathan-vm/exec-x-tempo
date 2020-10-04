@@ -16,6 +16,7 @@ typedef struct TCB {
 tcb_t STACK[APTOS];
 int control_aptos = 0;
 int task_on_turn = 0;
+unsigned int input_value = 0;
 
 void create_task(tarefa *func);
 int scheduler();
@@ -28,6 +29,14 @@ void task_2();
 void __interrupt() interrupt_for_timer0();
 
 void main(void) {
+    //Config do input
+    TRISAbits.RA0 = 1;
+    TRISDbits.RD0 = 0;
+    TRISDbits.RD1 = 0;
+    
+    // config analogico to digital
+    ADCON0bits.ADON = 1;
+    
     //Config do timer
     T0CONbits.TMR0ON = 1;
     T0CONbits.T08BIT = 0;
@@ -67,10 +76,24 @@ void create_task(tarefa *func){
 
 void task_1(){
     // ler o potenciometro 
+    ADCON0bits.GO = 1;
+    
+    while(ADCON0bits.GO_DONE){
+        input_value = ADRESH;
+    }
+    
+    PORTDbits.RD1 = 1;
+    
     return;
 }
 void task_2(){
+    PORTDbits.RD1 = 0;
+    
     // tensao de saida do potenciometro 
+        if(input_value != 0){
+            PORTDbits.RD0 = input_value; // 00010010101101010
+        }
+    
     return;
 }
 
